@@ -13,30 +13,28 @@ namespace EntityQuery
         private readonly Expression _expression;
         private readonly EntityQueryProvider _provider;
 
-        public EntityQueryable(IQueryable source, IPropertyAccessorProvider propertyAccessor)
+        public EntityQueryable(IQueryable source, IQueryStrategy queryStrategy)
         {
             if (source == null)
             {
                 throw new ArgumentNullException("source");
             }
-            if (propertyAccessor == null)
+            if (queryStrategy == null)
             {
                 throw new ArgumentNullException("ordering");
             }
             this._expression = Expression.Constant(this);
-            this._provider = new EntityQueryProvider(source, propertyAccessor);
-            this.PropertyAccessor = propertyAccessor;
+            this._provider = new EntityQueryProvider(source, queryStrategy);
         }
 
-        public EntityQueryable(IQueryable source, Expression expression, IPropertyAccessorProvider propertyAccessor)
+        public EntityQueryable(IQueryable source, Expression expression, IQueryStrategy queryStrategy)
         {
             if (expression == null)
             {
                 throw new ArgumentNullException("expression");
             }
             this._expression = expression;
-            this._provider = new EntityQueryProvider(source, propertyAccessor);
-            this.PropertyAccessor = propertyAccessor;
+            this._provider = new EntityQueryProvider(source, queryStrategy);
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -63,8 +61,6 @@ namespace EntityQuery
         {
             get { return this._provider; }
         }
-
-        public IPropertyAccessorProvider PropertyAccessor { get; set; }
 
     }
 }

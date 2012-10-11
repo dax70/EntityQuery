@@ -9,7 +9,7 @@ namespace EntityQuery
     internal class EntityQueryProvider : ExpressionVisitor, IQueryProvider
     {
         private IQueryable _source;
-        private readonly IPropertyAccessorProvider propertyAccessor;
+        private readonly IQueryStrategy queryStrategy;
 
         private class ParameterReplacer : ExpressionVisitor
         {
@@ -39,17 +39,17 @@ namespace EntityQuery
             }
         }
 
-        public EntityQueryProvider(IQueryable source, IPropertyAccessorProvider propertyAccessor)
+        public EntityQueryProvider(IQueryable source, IQueryStrategy queryStrategy)
         {
             if (source == null)
             {
                 throw new ArgumentNullException("source");
             }
-            if (propertyAccessor == null)
+            if (queryStrategy == null)
             {
                 throw new ArgumentNullException("ordering");
             }
-            this.propertyAccessor = propertyAccessor;
+            this.queryStrategy = queryStrategy;
             this._source = source;
         }
 
@@ -59,7 +59,7 @@ namespace EntityQuery
             {
                 throw new ArgumentNullException("expression");
             }
-            return new EntityQueryable<TElement>(this._source, expression, this.propertyAccessor);
+            return new EntityQueryable<TElement>(this._source, expression, this.queryStrategy);
         }
 
         public IQueryable CreateQuery(Expression expression)
@@ -69,7 +69,7 @@ namespace EntityQuery
                 throw new ArgumentNullException("expression");
             }
             Type type = expression.Type.GetGenericArguments().First<Type>();
-            return (IQueryable)Activator.CreateInstance(typeof(EntityQueryable<>).MakeGenericType(new Type[] { type }), new object[] { this._source, expression, this.propertyAccessor });
+            return (IQueryable)Activator.CreateInstance(typeof(EntityQueryable<>).MakeGenericType(new Type[] { type }), new object[] { this._source, expression, this.queryStrategy });
         }
 
         public TResult Execute<TResult>(Expression expression)
@@ -98,19 +98,8 @@ namespace EntityQuery
             {
                 throw new ArgumentNullException("query");
             }
-            Expression expression2 = this.VisitAll(Normalize(query));
+            Expression expression2 = this.VisitAll(this.queryStrategy.Visit(query));
             return this._source.Provider.CreateQuery(expression2);
-        }
-
-        private Expression Normalize<T>(EntityQueryable<T> queryable)
-        {
-            if (OrderingFinder.NeedsOrderMethod(queryable.Expression))
-            {
-                // Create Ordered at root and combine both queries.
-                var orderedQuery = queryable.OrderBy(this.propertyAccessor.GetAccessor<T>());
-                return QueryComposer.Compose(orderedQuery, queryable).Expression;
-            }
-            return queryable.Expression;
         }
 
         protected override Expression VisitConstant(ConstantExpression node)
