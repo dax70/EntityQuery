@@ -8,6 +8,8 @@ namespace EntityQuery
     internal sealed class OrderingFinder : ExpressionVisitor
     {
         private Action<OrderingFinder, MethodCallExpression> state = Start;
+        // No op lambda.
+        private readonly static Action<OrderingFinder, MethodCallExpression> Finish = (f, m) => { };
 
         public OrderingFinder()
         {
@@ -51,9 +53,5 @@ namespace EntityQuery
             }
         }
 
-        private static void Finish(OrderingFinder finder, MethodCallExpression node)
-        {
-            // No op.
-        }
     }
 }
