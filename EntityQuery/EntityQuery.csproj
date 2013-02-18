@@ -49,6 +49,7 @@
     <Compile Include="OrderingFilter.cs" />
     <Compile Include="OrderingFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PropertyVisitor.cs" />
     <Compile Include="QueryableUtility.cs" />
     <Compile Include="QueryComposer.cs" />
     <Compile Include="QueryExtensions.cs" />
